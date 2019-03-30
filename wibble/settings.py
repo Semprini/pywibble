@@ -14,6 +14,8 @@ DEST = {
     'EXCHANGE_PREFIX': None,
 }
 
+name = "wibble"
+
 try:
     from local_settings import *
 except ImportError:

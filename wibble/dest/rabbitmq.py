@@ -1,15 +1,14 @@
 import time
 import pika
-from enum import Enum
 
 import settings
 from wibble import Operation
 
 class RabbitMQ(object):
     
-    def __init__(self, name):
+    def __init__(self):
         self.credentials = pika.PlainCredentials(settings.DEST['USER'], settings.DEST['PASSWORD'])
-        self.exchange_name = settings.DEST['EXCHANGE_PREFIX'] + name
+        self.exchange_name = settings.DEST['EXCHANGE_PREFIX'] + settings.name
         self.connection = None
         self.channel = None
 

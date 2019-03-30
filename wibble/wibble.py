@@ -1,4 +1,5 @@
 import importlib
+from enum import Enum
 
 class Operation(Enum):
     CREATE = 1
@@ -11,8 +12,8 @@ class CDC(object):
         source_module = importlib.import_module('source.oracle')
         self.source = source_module.Oracle()
         
-        dest_module = importlib.import_module('source.oracle')
-        self.dest = dest_module.MQ()
+        dest_module = importlib.import_module('dest.rabbitmq')
+        self.dest = dest_module.RabbitMQ()
         
         self.read_change_id()
     
@@ -30,14 +31,14 @@ class CDC(object):
             self.change_id = 0
 
 
-    def run():
+    def run(self):
         table_changes = {}
         count=0
         
         done = False
         while not done:
             try:
-                self.change_id,table,operation,change = self.source.get()
+                self.change_id,table,operation,change = self.source.get(self.change_id)
                 self.dest.put(table,operation,change)
                 self.write_change_id()
                 
@@ -52,6 +53,7 @@ class CDC(object):
         self.source.disconnect()
               
               
-if __name__ == "main":
+if __name__ == "__main__":
     cdc = CDC()
     cdc.run()
+    print("Exiting")

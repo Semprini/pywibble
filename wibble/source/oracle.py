@@ -9,7 +9,7 @@ class Oracle(object):
         self.logminer_active = False
         self.cursor = None
         self.tables = ()
-        #todo scn from change id
+        self.scn = 0
 
     def connect(self):
         if self.cursor != None:
@@ -18,7 +18,7 @@ class Oracle(object):
         connected = False
         while not connected:
             try:
-                self.connection = cx_Oracle.Connection( settings.connection_string )#, encoding = "UTF-8", nencoding = "UTF-8")
+                self.connection = cx_Oracle.Connection( settings.SOURCE['CONNECTION_STRING'] )#, encoding = "UTF-8", nencoding = "UTF-8")
                 print("Connected. Database version:", self.connection.version)
                 connected = True
             except cx_Oracle.DatabaseError as e:
@@ -81,8 +81,10 @@ class Oracle(object):
 
 
     def select(self):
-        self.cursor.execute("""
-        SELECT 
+        tables = ""
+        if settings.SOURCE['TABLES'] is not None:
+            tables = " and table_name in {}".format(settings.SOURCE['TABLES'])
+        sql = """SELECT 
             thread#, 
             scn, 
             start_scn, 
@@ -114,10 +116,11 @@ class Oracle(object):
         WHERE 
             OPERATION_CODE in (1,2,3) 
             and commit_scn>={}
-            and TABLE_SPACE='{}'""".format(self.scn, settings.tablespace))
-
+            and TABLE_SPACE='{}'{}""".format(self.scn, settings.SOURCE['TABLESPACE'],tables)
+        self.cursor.execute(sql)
         
-    def get(self)
+    def get(self, scn):
+        self.scn = scn
         if self.connection == None:
             self.connect()
         if self.logminer_active == False:
